@@ -69,7 +69,7 @@
 </script>
 
 <svelte:head>
-    <title>{CommonHelper.joinNonEmpty([$pageTitle, $appName, "PocketBase"], " - ")}</title>
+    <title>{CommonHelper.joinNonEmpty([$pageTitle, $appName, "Qhalif"], " - ")}</title>
 </svelte:head>
 
 <div class="app-layout">
@@ -77,8 +77,8 @@
         <aside class="app-sidebar">
             <a href="/" class="logo logo-sm" use:link>
                 <img
-                    src="{import.meta.env.BASE_URL}images/logo.svg"
-                    alt="PocketBase logo"
+                    src="{import.meta.env.BASE_URL}images/logo.png"
+                    alt="Qhalif logo"
                     width="40"
                     height="40"
                 />

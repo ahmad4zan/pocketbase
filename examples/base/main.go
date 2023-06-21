@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -17,6 +20,52 @@ import (
 
 func main() {
 	app := pocketbase.New()
+
+	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		// add new "GET /hello" route to the app router (echo)
+		e.Router.AddRoute(echo.Route{
+			Method: http.MethodGet,
+			Path:   "/api/hello",
+			Handler: func(c echo.Context) error {
+				return c.String(200, "Hello world!")
+			},
+			Middlewares: []echo.MiddlewareFunc{
+				apis.ActivityLogger(app),
+			},
+		})
+
+		app.OnRecordBeforeCreateRequest().Add(func(e *core.RecordCreateEvent) error {
+			// overwrite the newly submitted "posts" record status to pending
+
+			if e.Record.Collection().Name == "students" {
+				studentDOB := e.Record.GetDateTime("dob")
+				currentTime := time.Now()
+				if currentTime.After(studentDOB.Time()) {
+					getAge := age(studentDOB.Time(), currentTime)
+					e.Record.Set("age", getAge)
+				}
+
+			}
+
+			return nil
+		})
+
+		app.OnRecordBeforeUpdateRequest().Add(func(e *core.RecordUpdateEvent) error {
+
+			if e.Record.Collection().Name == "students" {
+				studentDOB := e.Record.GetDateTime("dob")
+				currentTime := time.Now()
+				if currentTime.After(studentDOB.Time()) {
+					getAge := age(studentDOB.Time(), currentTime)
+					e.Record.Set("age", getAge)
+				}
+
+			}
+			return nil
+		})
+
+		return nil
+	})
 
 	// ---------------------------------------------------------------
 	// Optional plugin flags:
@@ -106,4 +155,18 @@ func defaultPublicDir() string {
 		return "./pb_public"
 	}
 	return filepath.Join(os.Args[0], "../pb_public")
+}
+
+func age(birthdate, today time.Time) string {
+
+	diff := today.Sub(birthdate)
+	month := int(diff.Hours() / 24 / 30)
+	year := month / 12
+	newmonth := 0
+	if month > (year * 12) {
+		newmonth = month - (year * 12)
+	}
+	//log.Print(month, year, newmonth)
+	getAge := fmt.Sprintf("%d year %d month", int(year), newmonth)
+	return getAge
 }

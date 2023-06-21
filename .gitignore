@@ -5,7 +5,6 @@
 
 # goreleaser builds folder
 /.builds/
-
 # tests coverage
 coverage.out
 
@@ -16,3 +15,5 @@ coverage.out
 README.html
 CHANGELOG.html
 LICENSE.html
+#  have to build svelte file
+ui/dist/*
